@@ -10,13 +10,13 @@ export class AuthController {
     this.authService = authService;
   }
 
-  getUserById = (req: Request, res: Response) => {
+  getUserById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const user = this.authService.getUserById(String(id));
     return res.json(user);
   };
 
-  authenticateUser = (req: Request, res: Response) => {
+  authenticateUser = async (req: Request, res: Response) => {
     if (!req.body) {
       throw Boom.badRequest('Request body is required');
     }

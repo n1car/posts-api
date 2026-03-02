@@ -1,3 +1,4 @@
+import { Pool } from 'pg'
 import {
   AuthenticateUserDTO,
   CreateUserDTO,
@@ -7,24 +8,26 @@ import {
 
 export class AuthRepository {
   private users: User[];
+  private pool: Pool;
 
-  constructor() {
-    this.users = [];
+  constructor(pool: Pool) {
+    this.users = User[];
+    this.users = []
   }
 
-  getUserById = (userId: string): User | null => {
+  getUserById = async (userId: string): Promise<User> | null => {
     const userFound = this.users.find((user) => user.id === userId);
 
     return userFound ?? null;
   };
 
-  getUserByEmail = (email: string): User | null => {
+  getUserByEmail = async (email: string): Promise<User> | null => {
     const userFound = this.users.find((user) => user.email === email);
 
     return userFound ?? null;
   };
 
-  getUserByEmailAndPassword = (authUser: AuthenticateUserDTO): User | null => {
+  getUserByEmailAndPassword = async (authUser: AuthenticateUserDTO): Promise<User> | null => {
     const userFound = this.users.find(
       (user) =>
         user.email === authUser.email && user.password === authUser.password
@@ -33,7 +36,7 @@ export class AuthRepository {
     return userFound ?? null;
   };
 
-  createUser = (data: CreateUserDTO): User => {
+  createUser = async (data: CreateUserDTO): Promise<User> => {
     const newUser: User = {
       id: crypto.randomUUID(),
       email: data.email,
@@ -47,7 +50,7 @@ export class AuthRepository {
     return newUser;
   };
 
-  updateUser = (user: UpdateUserDTO): User => {
+  updateUser = async (user: UpdateUserDTO): Promise<User> => {
     const { id, name, address } = user;
     const userIndex = this.users.findIndex((user) => user.id === id);
 

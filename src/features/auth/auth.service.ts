@@ -14,8 +14,8 @@ export class AuthService {
     this.authRepository = authRepository;
   }
 
-  getUserById = (userId: string): User => {
-    const userFound = this.authRepository.getUserById(userId);
+  getUserById = async (userId: string): Promise<User> => {
+    const userFound = await this.authRepository.getUserById(userId);
 
     if (!userFound) {
       throw Boom.notFound('User not found');
