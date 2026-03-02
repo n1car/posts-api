@@ -1,3 +1,4 @@
+import { AuthRepository } from './auth.repository';
 import {
   AuthenticateUserDTO,
   CreateUserDTO,
@@ -7,14 +8,14 @@ import {
 import Boom from '@hapi/boom';
 
 export class AuthService {
-  private users: User[];
+  private authRepository: AuthRepository;
 
-  constructor() {
-    this.users = [];
+  constructor(authRepository: AuthRepository) {
+    this.authRepository = authRepository;
   }
 
   getUserById = (userId: string): User => {
-    const userFound = this.users.find((user) => user.id === userId);
+    const userFound = this.authRepository.getUserById(userId);
 
     if (!userFound) {
       throw Boom.notFound('User not found');
@@ -24,11 +25,8 @@ export class AuthService {
   };
 
   authenticateUser = (credentials: AuthenticateUserDTO): User => {
-    const userFound = this.users.find(
-      (user) =>
-        user.email === credentials.email &&
-        user.password === credentials.password
-    );
+    const userFound =
+      this.authRepository.getUserByEmailAndPassword(credentials);
 
     if (!userFound) {
       throw Boom.unauthorized('Invalid credentials');
@@ -38,42 +36,37 @@ export class AuthService {
   };
 
   createUser = (data: CreateUserDTO): User => {
-    const emailTaken = this.users.find((user) => user.email === data.email);
+    const emailTaken = this.authRepository.getUserByEmail(data.email);
 
     if (emailTaken) {
       throw Boom.conflict('Email already in use');
     }
 
-    const newUser: User = {
-      id: crypto.randomUUID(),
+    const newUser = this.authRepository.createUser({
       email: data.email,
       password: data.password,
       role: data.role,
-      name: data.name ?? null,
-      address: data.address ?? null,
-    };
+      name: data.name,
+      address: data.address,
+    });
 
-    this.users.push(newUser);
     return newUser;
   };
 
   updateUser = (user: UpdateUserDTO): User => {
     const { id, name, address } = user;
-    const userIndex = this.users.findIndex((user) => user.id === id);
+    const userExists = this.authRepository.getUserById(id);
 
-    if (userIndex === -1) {
+    if (!userExists) {
       throw Boom.notFound('User not found');
     }
 
-    const userAtIndex = this.users[userIndex];
+    const userUpdated = this.authRepository.updateUser({
+      id,
+      name,
+      address,
+    });
 
-    const updatedUser = {
-      ...userAtIndex,
-      name: name === undefined ? userAtIndex.name : name,
-      address: address === undefined ? userAtIndex.address : address,
-    };
-
-    this.users[userIndex] = updatedUser;
-    return updatedUser;
+    return userUpdated;
   };
 }
